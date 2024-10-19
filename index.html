@@ -44,21 +44,32 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="mb-0">Chinese-Telecode Converter</h1>
+            <h4>Chinese-Telecode Converter</h4>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="scTcToggle">
                 <label class="form-check-label" for="scTcToggle">TC/SC</label>
             </div>
+            <h4>中文電碼轉換器</h4>
         </div>
+        
         <div class="alert alert-info mb-3" role="alert">
-            <h4 class="alert-heading">Instructions:</h4>
+            <h5 class="alert-heading">Instructions:</h5>
             <ul>
-                <li>Enter either Chinese characters (simplified or traditional) or telecode in the input field below.</li>
+                <li>Enter either Chinese characters or telecode in the input field below.</li>
                 <li>Multiple characters and telecode entries are accepted.</li>
                 <li>For telecode, separate each code with a space.</li>
                 <li>Do not mix Chinese characters and telecode in the same input.</li>
-                <li>Use the toggle switch in the upper right corner to choose between Traditional (TC) and Simplified (SC) Chinese output.</li>
+                <li>Use the toggle switch to choose between Traditional (TC) and Simplified (SC) Chinese output.</li>
                 <li>You may find the project page in <a href="https://github.com/KnugiHK/chinese-telecode" target="_blank"><i class="fab fa-github"></i></a>.
+            </ul>
+            <h5 class="alert-heading">點用？</h5>
+            <ul>
+                <li>喺下面輸入中文字或者中文電碼。</li>
+                <li>多過一個中文字或電碼都得。</li>
+                <li>中文電碼嚟講，每個電碼之間要用空格分開。</li>
+                <li>唔好喺同一時間輸入中文字同埋電碼。</li>
+                <li>上面個掣可以用嚟選擇繁體或者簡體。</li>
+                <li>你可以喺<a href="https://github.com/KnugiHK/chinese-telecode" target="_blank"><i class="fab fa-github"></i></a>搵到原始碼。</li>
             </ul>
         </div>
         <div class="mb-3">
@@ -133,10 +144,11 @@
             } else if (isValidChinese(input)) {
                 output = convertToTelecode(input, preferSC);
             } else if (input !== "") {
-                output = "Error: Invalid input. Please enter either Chinese characters or valid telecode (4-digit numbers separated by spaces).";
+                output = "Error: Invalid input. Please enter either Chinese characters or valid telecode (4-digit numbers separated by spaces).\r\n錯誤：無效嘅輸入。請輸入中文字或者有效嘅中文電碼。";
             }
-
-            document.getElementById('result').textContent = output;
+            const result = document.getElementById('result');
+            result.textContent = output;
+            result.innerHTML = result.innerHTML.replace(/\r\n?/g, '<br />');
         }
 
         document.getElementById('convertBtn').addEventListener('click', convert);
