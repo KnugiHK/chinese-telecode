@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chinese-Telecode Converter</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #212529;
+            color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 600px;
+            position: relative;
+        }
+        #result {
+            min-height: 100px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .github-link {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="mb-0">Chinese-Telecode Converter</h1>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="scTcToggle">
+                <label class="form-check-label" for="scTcToggle">TC/SC</label>
+            </div>
+        </div>
+        <div class="alert alert-info mb-3" role="alert">
+            <h4 class="alert-heading">Instructions:</h4>
+            <ul>
+                <li>Enter either Chinese characters (simplified or traditional) or telecode in the input field below.</li>
+                <li>Multiple characters and telecode entries are accepted.</li>
+                <li>For telecode, separate each code with a space.</li>
+                <li>Do not mix Chinese characters and telecode in the same input.</li>
+                <li>Use the toggle switch in the upper right corner to choose between Traditional (TC) and Simplified (SC) Chinese output.</li>
+                <li>You may find the project page in <a href="https://github.com/KnugiHK/chinese-telecode" target="_blank"><i class="fab fa-github"></i></a>.
+            </ul>
+        </div>
+        <div class="mb-3">
+            <textarea id="input" class="form-control bg-dark text-light" rows="4" placeholder="Enter Chinese characters or telecode..."></textarea>
+        </div>
+        <div class="mb-3">
+            <button id="convertBtn" class="btn btn-primary w-100">Convert</button>
+        </div>
+        <div id="result" class="bg-dark text-light p-3 rounded"></div>
+    </div>
+
+    <script>
+        let telecodeMappings, reverseMappings;
+
+        let xhr = new XMLHttpRequest();
+        xhr.open('GET', 'data.json', true);
+
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+              telecodeMappings = JSON.parse(xhr.responseText);
+              reverseMappings = createReverseMappings(telecodeMappings);
+            } else {
+              console.error('Error fetching the JSON:', xhr.statusText);
+            }
+          }
+        };
+
+        xhr.send();
+
+        function createReverseMappings(mapping) {
+            const scReverse = {};
+            const tcReverse = {};
+            for (const [char, codes] of Object.entries(mapping)) {
+                if (codes.sc) scReverse[codes.sc] = char;
+                if (codes.tc) tcReverse[codes.tc] = char;
+            }
+            return { sc: scReverse, tc: tcReverse };
+        }
+
+        function convertToTelecode(input, preferSC) {
+            return input.split('').map(char => {
+                const codes = telecodeMappings[char];
+                if (!codes) return char;
+                return preferSC ? (codes.sc || codes.tc || char) : (codes.tc || codes.sc || char);
+            }).join(' ');
+        }
+
+        function convertFromTelecode(input, preferSC) {
+            return input.split(' ').map(code => {
+                const scChar = reverseMappings.sc[code];
+                const tcChar = reverseMappings.tc[code];
+                return preferSC ? (scChar || tcChar || code) : (tcChar || scChar || code);
+            }).join('');
+        }
+
+        function isValidTelecode(input) {
+            return /^(\d{4}\s)*\d{4}$/.test(input.trim());
+        }
+
+        function isValidChinese(input) {
+            return /^[\u4e00-\u9fff]+$/.test(input);
+        }
+
+        function convert() {
+            const input = document.getElementById('input').value.trim();
+            const preferSC = document.getElementById('scTcToggle').checked;
+            let output;
+
+            if (isValidTelecode(input)) {
+                output = convertFromTelecode(input, preferSC);
+            } else if (isValidChinese(input)) {
+                output = convertToTelecode(input, preferSC);
+            } else if (input !== "") {
+                output = "Error: Invalid input. Please enter either Chinese characters or valid telecode (4-digit numbers separated by spaces).";
+            }
+
+            document.getElementById('result').textContent = output;
+        }
+
+        document.getElementById('convertBtn').addEventListener('click', convert);
+        document.getElementById('input').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                convert();
+            }
+        });
+        document.getElementById('scTcToggle').addEventListener('change', convert);
+    </script>
+</body>
+</html>
